@@ -1,5 +1,6 @@
 # import the necessary packages
-from keras.applications import VGG16
+#from keras.applications.vgg16 import VGG16
+from tensorflow import keras
 from keras.applications import imagenet_utils
 from keras.preprocessing.image import img_to_array
 from keras.preprocessing.image import load_img
@@ -35,7 +36,7 @@ labels = le.fit_transform(labels)
 
 # load the VGG16 network
 print("[INFO] loading network...")
-model = VGG16(weights="imagenet", include_top=False)
+model = keras.applications.vgg16.VGG16(weights="imagenet", include_top=False)
 
 # initialize the HDF5 dataset writer, then store the class label names in the dataset
 dataset = HDF5DatasetWriter((len(imagePaths),512*7*7), args["output"], dataKey="features", bufSize=args["buffer_size"])
