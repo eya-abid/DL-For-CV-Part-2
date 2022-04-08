@@ -30,3 +30,28 @@ print("[INFO] loading images...")
 imagePaths = list(paths.list_images(args[ "dataset"]))
 classNames = [pt.split(os.path.sep)[-2] for pt in imagePaths]
 classNames = [str(x) for x in np.unique(classNames)]
+
+# initialize the image preprocessors
+aap = AspectAwarePreprocessor(224,224)
+iap = ImageToArrayPreprocessor()
+
+# load the dataset from disk then scale the raw pixel intensities to the range [0, 1]
+sdl = SimpleDatasetLoader(preprocessors=[aap, iap])
+(data, labels) = sdl.load(imagePaths, verbose=500)
+data = data.astype("float") /255.0
+
+# partition the data into training and testing splits using 75% of the data for training and the remaining 25% for testing
+(trainX, testX, trainY, testY) = train_test_split(data, labels, test_size=0.25, random_state=42)
+
+# convert the labels from integers to vectors
+trainY = LabelBinarizer().fit_transform(trainY)
+testY = LabelBinarizer().fit_transform(testY)
+
+# load the VGG16 network, ensuring the head FC layer sets are left off
+baseModel = VGG16(weights="imagenet", include_top=False,input_tensor=Input(shape=(224,224,3)))
+
+# initialize the new head of the network, a set of FC layers followed by a softmax classifier
+headModel = FCHeadNet.build(baseModel,len(classNames),256)
+
+# place the head FC model on top of the base model -- this will become the actual model we will train
+model = Model(inputs=baseModel.input, outputs=headModel)
