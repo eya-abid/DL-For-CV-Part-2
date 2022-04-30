@@ -28,3 +28,21 @@ testY = lb.fit_transform(testY)
 modelPaths = os.path.sep.join([args["models"], "*.model"])
 modelPaths =list(glob.glob(modelPaths))
 models = []
+
+# loop over the model paths, loading the model, and adding it to the list of models
+for(i, modelPath)in enumerate(modelPaths):
+    print("[INFO] loading model {}/{}".format(i +1,len(modelPaths)))
+    models.append(load_model(modelPath))
+
+# initialize the list of predictions
+print("[INFO] evaluating ensemble...")
+predictions = []
+
+# loop over the models
+for model in models:
+    # use the current model to make predictions on the testing data, then store these predictions in the aggregate predictions list
+    predictions.append(model.predict(testX, batch_size=64))
+
+    # average the probabilities across all model predictions, then show a classification report
+    predictions = np.average(predictions, axis=0)
+    print(classification_report(testY.argmax(axis=1), predictions.argmax(axis=1),target_names=labelNames))
